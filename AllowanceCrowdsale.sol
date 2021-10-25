@@ -16,14 +16,16 @@ abstract contract AllowanceCrowdsale is Crowdsale {
   using SafeMath for uint256;
 
   address public tokenWallet;
+  ERC20 token;
 
   /**
    * @dev Constructor, takes token wallet address.
    * @param _tokenWallet Address holding the tokens, which has approved allowance to the crowdsale
    */
-  constructor(address _tokenWallet)  {
+  constructor(address _tokenWallet, ERC20 _token)  {
     require(_tokenWallet != address(0));
     tokenWallet = _tokenWallet;
+    token = _token;
   }
 
   /**
