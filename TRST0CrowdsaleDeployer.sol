@@ -8,7 +8,7 @@ import "./TRST0Crowdsale.sol";
 
 contract TRST0CrowdsaleDeployer {
 
-uint256 constant nSupply = 300000*1000000000000000000; ///250000*10^18
+uint256 constant nSupply = 300000*1000000000000000000; ///300000*10^18
 uint256 constant nRate = 250; ///TRST0 per BNB
 
 
