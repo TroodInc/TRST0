@@ -4,8 +4,8 @@
 pragma solidity ^0.8.7;
 
 import "./Crowdsale.sol";
-import "./ERC20.sol";
-import "./SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 /**

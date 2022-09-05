@@ -1,6 +1,6 @@
 pragma solidity ^0.8.7;
 
-import "./ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * @title TRST0
@@ -11,10 +11,13 @@ import "./ERC20.sol";
  * The Crowdsale coming along with the TRST0 contract presumes full sale of the whole amount from the Owner's account for 200 TRST per 1 BNB
  *
  */
-contract TRST0 is ERC20 {
-
-	constructor(string memory name_, string memory symbol_, address payable owner_, uint256 supply_) ERC20(name_, symbol_) public {
-		_mint(owner_, supply_);
-	}
-
+contract TRST0 is ERC20Burnable {
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        address payable owner_,
+        uint256 supply_
+    ) public ERC20(name_, symbol_) {
+        _mint(owner_, supply_);
+    }
 }
