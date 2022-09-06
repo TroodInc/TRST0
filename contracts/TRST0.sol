@@ -18,7 +18,7 @@ contract TRST0 is ERC20Burnable {
         string memory symbol_,
         address payable owner_,
         uint256 supply_
-    ) public ERC20(name_, symbol_) {
+    ) ERC20(name_, symbol_) {
         _mint(owner_, supply_);
     }
 }

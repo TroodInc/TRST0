@@ -22,7 +22,7 @@ contract TRST0Payback {
         uint256 amount
     );
 
-    constructor(ERC20 _token, uint _rate)  {
+    constructor(ERC20 _token, uint _rate) {
         token = _token;
         rate = _rate;
     }
@@ -46,7 +46,11 @@ contract TRST0Payback {
         emit TokenReturn(msg.sender, _beneficiary, value, _amount);
     }
 
-    function _getTokenValue(uint256 _tokenAmount) internal view returns (uint256) {
+    function _getTokenValue(uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return _tokenAmount.div(rate);
     }
 }

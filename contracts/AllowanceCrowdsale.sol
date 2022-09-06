@@ -21,8 +21,11 @@ abstract contract AllowanceCrowdsale is Crowdsale {
      * @dev Constructor, takes token wallet address.
      * @param tokenWallet_ Address holding the tokens, which has approved allowance to the crowdsale.
      */
-    constructor (address tokenWallet_) {
-        require(tokenWallet_ != address(0), "AllowanceCrowdsale: token wallet is the zero address");
+    constructor(address tokenWallet_) {
+        require(
+            tokenWallet_ != address(0),
+            "AllowanceCrowdsale: token wallet is the zero address"
+        );
         _tokenWallet = tokenWallet_;
     }
 
@@ -38,7 +41,11 @@ abstract contract AllowanceCrowdsale is Crowdsale {
      * @return Amount of tokens left in the allowance
      */
     function remainingTokens() public view returns (uint256) {
-        return Math.min(token().balanceOf(_tokenWallet), token().allowance(_tokenWallet, address(this)));
+        return
+            Math.min(
+                token().balanceOf(_tokenWallet),
+                token().allowance(_tokenWallet, address(this))
+            );
     }
 
     /**
@@ -46,7 +53,10 @@ abstract contract AllowanceCrowdsale is Crowdsale {
      * @param beneficiary Token purchaser
      * @param tokenAmount Amount of tokens purchased
      */
-    function _deliverTokens(address beneficiary, uint256 tokenAmount) internal override {
+    function _deliverTokens(address beneficiary, uint256 tokenAmount)
+        internal
+        override
+    {
         token().safeTransferFrom(_tokenWallet, beneficiary, tokenAmount);
     }
 }
