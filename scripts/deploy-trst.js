@@ -11,14 +11,12 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log('Deploying contracts with the account: ' + deployer.address);
 
-  const TRST = await hre.ethers.getContractFactory("TRST0");
-  const trst = await TRST.deploy("Cool TRST", "TRSTC", deployer.address, 1000);
+  trst = deployContract("TRST0", "Cool TRST", "TRSTC", deployer.address, 1000)
 
-  await trst.deployed();
-
-  console.log(
-    `TRST address: ${trst.address}`
-  );
+  rate = 1000000
+  deployContract("TRST0Crowdsale", rate, deployer.address, trst)
+  
+  deployContract("TRST0Payback", trst, rate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -27,3 +25,16 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+async function deployContract(contractName, ...args) {
+  const factory = await hre.ethers.getContractFactory(contractName);
+  const contract = await factory.deploy(...args);
+
+  await contract.deployed();
+
+  console.log(
+    `${contractName} address: ${contract.address}`
+  );
+
+  return contract.address
+}
