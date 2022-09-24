@@ -8,6 +8,7 @@ contract TRST0Crowdsale is AllowanceCrowdsale {
     constructor(
         uint256 rate, // rate in base units
         address payable wallet,
+        address tokenWallet,
         ERC20 token
-    ) Crowdsale(rate, wallet, token) AllowanceCrowdsale(wallet) {}
+    ) Crowdsale(rate, wallet, token) AllowanceCrowdsale(tokenWallet) {}
 }
