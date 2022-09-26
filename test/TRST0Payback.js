@@ -42,15 +42,18 @@ describe("TRST0Payback", function () {
             await token.connect(otherAccount).approve(paybackContract.address, tokenSold)
 
             await expect(paybackContract.connect(otherAccount).returnTokens(otherAccount.address, tokenSold))
-                .to.emit(paybackContract, "TokenReturn")
-                .withArgs(otherAccount.address, otherAccount.address, ethReturned, tokenSold)
                 .to.changeEtherBalances(
                     [paybackContract, otherAccount],
                     [minusEthReturned, ethReturned]
                 )
+                .to.emit(paybackContract, "TokenReturn")
+                .withArgs(otherAccount.address, otherAccount.address, ethReturned, tokenSold)
+                .to.emit(token, "Transfer")
+                .withArgs(paybackContract.address, ethers.constants.AddressZero, tokenSold)
+
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
-
+            expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
         });
 
         it("Should payback for tokens to beneficiary", async function () {
@@ -70,15 +73,18 @@ describe("TRST0Payback", function () {
             await token.connect(otherAccount).approve(paybackContract.address, tokenSold)
 
             await expect(paybackContract.connect(otherAccount).returnTokens(beneficiary.address, tokenSold))
-                .to.emit(paybackContract, "TokenReturn")
-                .withArgs(otherAccount.address, beneficiary.address, ethReturned, tokenSold)
                 .to.changeEtherBalances(
                     [paybackContract, beneficiary],
                     [minusEthReturned, ethReturned]
                 )
+                .to.emit(paybackContract, "TokenReturn")
+                .withArgs(otherAccount.address, beneficiary.address, ethReturned, tokenSold)
+                .to.emit(token, "Transfer")
+                .withArgs(paybackContract.address, ethers.constants.AddressZero, tokenSold)
+
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
-
+            expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
         });
     });
 });

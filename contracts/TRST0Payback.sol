@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract TRST0Payback {
     using SafeMath for uint256;
 
-    ERC20 token;
+    ERC20Burnable token;
 
     uint256 public rate;
 
@@ -22,7 +22,7 @@ contract TRST0Payback {
         uint256 amount
     );
 
-    constructor(ERC20 _token, uint _rate) {
+    constructor(ERC20Burnable _token, uint _rate) {
         token = _token;
         rate = _rate;
     }
@@ -44,6 +44,8 @@ contract TRST0Payback {
         tokensReturned += _amount;
         payable(_beneficiary).transfer(value);
         emit TokenReturn(msg.sender, _beneficiary, value, _amount);
+
+        token.burn(_amount);
     }
 
     function _getTokenValue(uint256 _tokenAmount)
