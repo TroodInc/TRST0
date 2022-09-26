@@ -7,7 +7,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("TRST0Crowdsale", function () {
-    async function deployContract() {
+    async function deployCrowdsaleContract() {
 
         const [tokenOwner, tokenHolder, otherAccount] = await ethers.getSigners();
         const TRST = await ethers.getContractFactory("TRST0");
@@ -25,7 +25,7 @@ describe("TRST0Crowdsale", function () {
 
     describe("AllownceCrowdsale", function () {
         it("Should be deployed", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployContract)
+            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
 
@@ -39,7 +39,7 @@ describe("TRST0Crowdsale", function () {
         });
 
         it("Should return allowance", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployContract)
+            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
 
@@ -54,7 +54,7 @@ describe("TRST0Crowdsale", function () {
         });
 
         it("Should buy tokens from allowance", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount } = await loadFixture(deployContract)
+            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
 
@@ -74,7 +74,7 @@ describe("TRST0Crowdsale", function () {
             })).to.changeEtherBalances(
                 [tokenOwner, otherAccount],
                 [amount, minus_amount]
-            );
+            )
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(expected_token_amount)
         });
