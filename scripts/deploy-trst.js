@@ -8,14 +8,15 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const [deployer] = await ethers.getSigners();
+  const [deployer, tokenHolder] = await ethers.getSigners();
   console.log('Deploying contracts with the account: ' + deployer.address);
+  console.log('Token holder: ' + tokenHolder.address);
 
   trst = deployContract("TRST0", "Cool TRST", "TRSTC", deployer.address, 1000)
 
   rate = 1000000
-  deployContract("TRST0Crowdsale", rate, deployer.address, trst)
-  
+  deployContract("TRST0Crowdsale", rate, deployer.address, tokenHolder.address, trst)
+
   deployContract("TRST0Payback", trst, rate)
 }
 
