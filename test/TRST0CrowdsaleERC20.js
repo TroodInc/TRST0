@@ -5,7 +5,7 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("TRST0Crowdsale", function () {
+describe("TRST0CrowdsaleERC20", function () {
     async function deployCrowdsaleContract() {
 
         const [tokenOwner, tokenHolder, otherAccount, freeAccount] = await ethers.getSigners();
@@ -15,16 +15,22 @@ describe("TRST0Crowdsale", function () {
         const supply = ethers.utils.parseEther("50000")
         const token = await TRST.deploy(name, symbol, tokenOwner.address, supply);
 
-        const Crowdsale = await ethers.getContractFactory("TRST0Crowdsale");
-        const rate = 2
-        const crowdsaleContract = await Crowdsale.deploy(rate, tokenOwner.address, tokenHolder.address, token.address)
+        const buyTRST = await ethers.getContractFactory("TRST0");
+        const buyName = "Very cool Token"
+        const buySymbol = "USDC"
+        const buySupply = ethers.utils.parseEther("50000")
+        const buyToken = await buyTRST.deploy(buyName, buySymbol, tokenOwner.address, buySupply);
 
-        return { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount }
+        const Crowdsale = await ethers.getContractFactory("TRST0CrowdsaleERC20");
+        const rate = 2
+        const crowdsaleContract = await Crowdsale.deploy(rate, tokenOwner.address, tokenHolder.address, token.address, buyToken.address)
+
+        return { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount }
     }
 
     describe("AllownceCrowdsale", function () {
         it("Should be deployed", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
+            const { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
 
@@ -40,10 +46,11 @@ describe("TRST0Crowdsale", function () {
             expect(await crowdsaleContract.tokenAvailable()).to.equal(supply)
             expect(await crowdsaleContract.tokenSold()).to.equal(0)
             expect(await crowdsaleContract.tokenReceivedFree()).to.equal(0)
+            expect(await crowdsaleContract.buyToken()).to.equal(buyToken.address)
         });
 
         it("Should return allowance", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
+            const { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
 
@@ -58,13 +65,13 @@ describe("TRST0Crowdsale", function () {
         });
 
         it("Should buy tokens from allowance", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount } = await loadFixture(deployCrowdsaleContract)
+            const { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
+            buyToken.transfer(otherAccount.address, supply);
 
             const allowance = ethers.utils.parseEther("3000")
             const amount = ethers.utils.parseEther("2")
-            const minusAmount = ethers.utils.parseEther("-2")
             const expectedTokenAmount = ethers.utils.parseEther("4")
             const tokenAvailable = ethers.utils.parseEther("49996")
 
@@ -72,25 +79,26 @@ describe("TRST0Crowdsale", function () {
                 .to.emit(token, "Approval")
                 .withArgs(tokenHolder.address, crowdsaleContract.address, allowance)
 
+            await buyToken.connect(otherAccount).approve(crowdsaleContract.address, allowance)
+
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
 
-            await expect(crowdsaleContract.connect(otherAccount).buyTokens(otherAccount.address, {
-                value: amount
-            })).to.changeEtherBalances(
-                [tokenOwner, otherAccount],
-                [amount, minusAmount]
-            )
+            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+                .to.emit(crowdsaleContract, "TokensPurchased")
+                .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(expectedTokenAmount)
+            expect(await buyToken.balanceOf(tokenOwner.address)).to.equal(amount)
             expect(await crowdsaleContract.tokenAvailable()).to.equal(tokenAvailable)
             expect(await crowdsaleContract.tokenSold()).to.equal(expectedTokenAmount)
             expect(await crowdsaleContract.tokenReceivedFree()).to.equal(0)
         });
 
         it("Should buy tokens from allowance and return received free", async function () {
-            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount } = await loadFixture(deployCrowdsaleContract)
+            const { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount } = await loadFixture(deployCrowdsaleContract)
 
             token.transfer(tokenHolder.address, supply);
+            buyToken.transfer(otherAccount.address, supply);
 
             const freeAmount = ethers.utils.parseEther("7")
             token.connect(tokenHolder).transfer(freeAccount.address, freeAmount);
@@ -105,14 +113,13 @@ describe("TRST0Crowdsale", function () {
                 .to.emit(token, "Approval")
                 .withArgs(tokenHolder.address, crowdsaleContract.address, allowance)
 
+            await buyToken.connect(otherAccount).approve(crowdsaleContract.address, allowance)
+
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
 
-            await expect(crowdsaleContract.connect(otherAccount).buyTokens(otherAccount.address, {
-                value: amount
-            })).to.changeEtherBalances(
-                [tokenOwner, otherAccount],
-                [amount, minusAmount]
-            )
+            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+                .to.emit(crowdsaleContract, "TokensPurchased")
+                .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
 
             expect(await crowdsaleContract.tokenAvailable()).to.equal(tokenAvailable)
             expect(await crowdsaleContract.tokenSold()).to.equal(expectedTokenAmount)

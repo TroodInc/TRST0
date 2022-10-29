@@ -121,13 +121,16 @@ abstract contract Crowdsale is Context, ReentrancyGuard {
      * another `nonReentrant` function.
      * @param beneficiary Recipient of the token purchase
      */
-    function buyTokens(address beneficiary)
+    function buyTokens(address beneficiary) public payable virtual {
+        buyTokensWithAmount(beneficiary, msg.value);
+    }
+
+    function buyTokensWithAmount(address beneficiary, uint256 weiAmount)
         public
         payable
         virtual
         nonReentrant
     {
-        uint256 weiAmount = msg.value;
         _preValidatePurchase(beneficiary, weiAmount);
 
         // calculate token amount to be created
@@ -141,7 +144,7 @@ abstract contract Crowdsale is Context, ReentrancyGuard {
 
         _updatePurchasingState(beneficiary, weiAmount);
 
-        _forwardFunds();
+        _forwardFunds(weiAmount);
         _postValidatePurchase(beneficiary, weiAmount);
     }
 
@@ -237,7 +240,7 @@ abstract contract Crowdsale is Context, ReentrancyGuard {
     /**
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
-    function _forwardFunds() internal {
-        _wallet.transfer(msg.value);
+    function _forwardFunds(uint256 weiAmount) internal virtual {
+        _wallet.transfer(weiAmount);
     }
 }
