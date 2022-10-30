@@ -15,11 +15,10 @@ describe("TRST0CrowdsaleERC20", function () {
         const supply = ethers.utils.parseEther("50000")
         const token = await TRST.deploy(name, symbol, tokenOwner.address, supply);
 
-        const buyTRST = await ethers.getContractFactory("TRST0");
         const buyName = "Very cool Token"
         const buySymbol = "USDC"
         const buySupply = ethers.utils.parseEther("50000")
-        const buyToken = await buyTRST.deploy(buyName, buySymbol, tokenOwner.address, buySupply);
+        const buyToken = await TRST.deploy(buyName, buySymbol, tokenOwner.address, buySupply);
 
         const Crowdsale = await ethers.getContractFactory("TRST0CrowdsaleERC20");
         const rate = 2

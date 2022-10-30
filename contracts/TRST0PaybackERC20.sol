@@ -2,12 +2,16 @@
 pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract TRST0Payback {
+contract TRST0PaybackERC20 {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     ERC20Burnable token;
+    IERC20 buyToken;
 
     uint256 public rate;
 
@@ -22,17 +26,23 @@ contract TRST0Payback {
         uint256 amount
     );
 
-    constructor(ERC20Burnable _token, uint _rate) {
+    constructor(
+        ERC20Burnable _token,
+        IERC20 _buyToken,
+        uint _rate
+    ) {
         token = _token;
+        buyToken = _buyToken;
         rate = _rate;
     }
 
-    receive() external payable {
-        emit TopUp(msg.sender, msg.value);
+    function topUp(uint256 _amount) public {
+        buyToken.safeTransferFrom(msg.sender, address(this), _amount);
+        emit TopUp(msg.sender, _amount);
     }
 
     function getBalance() public view returns (uint256) {
-        return address(this).balance;
+        return buyToken.balanceOf(address(this));
     }
 
     function returnTokens(address _beneficiary, uint256 _amount) public {
@@ -45,7 +55,8 @@ contract TRST0Payback {
 
         token.transferFrom(msg.sender, address(this), _amount);
         tokensReturned += _amount;
-        payable(_beneficiary).transfer(value);
+        buyToken.safeTransfer(_beneficiary, value);
+
         emit TokenReturn(msg.sender, _beneficiary, value, _amount);
 
         token.burn(_amount);

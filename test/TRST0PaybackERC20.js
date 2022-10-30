@@ -5,7 +5,7 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("TRST0Payback", function () {
+describe("TRST0PaybackERC20", function () {
     async function deployPaybackContract() {
 
         const [tokenOwner, otherAccount, beneficiary, tokenHolder] = await ethers.getSigners();
@@ -15,80 +15,77 @@ describe("TRST0Payback", function () {
         const supply = ethers.utils.parseEther("50000")
         const token = await TRST.deploy(name, symbol, tokenOwner.address, supply);
 
-        const Payback = await ethers.getContractFactory("TRST0Payback");
+        const buyName = "Very cool Token"
+        const buySymbol = "USDC"
+        const buySupply = ethers.utils.parseEther("50000")
+        const buyToken = await TRST.deploy(buyName, buySymbol, tokenOwner.address, buySupply);
+
+        const Payback = await ethers.getContractFactory("TRST0PaybackERC20");
         const rate = 2
-        const paybackContract = await Payback.deploy(token.address, rate)
+        const paybackContract = await Payback.deploy(token.address, buyToken.address, rate)
 
-        const Crowdsale = await ethers.getContractFactory("TRST0Crowdsale");
-        const crowdsaleContract = await Crowdsale.deploy(rate, tokenOwner.address, tokenHolder.address, token.address)
+        const Crowdsale = await ethers.getContractFactory("TRST0CrowdsaleERC20");
+        const crowdsaleContract = await Crowdsale.deploy(rate, tokenOwner.address, tokenHolder.address, token.address, buyToken.address)
 
-        return { token, paybackContract, tokenOwner, otherAccount, beneficiary, crowdsaleContract, supply }
+        return { token, buyToken, paybackContract, tokenOwner, otherAccount, beneficiary, crowdsaleContract, supply }
     }
 
     describe("Payback", function () {
 
         it("Should payback for tokens", async function () {
-            const { token, paybackContract, tokenOwner, otherAccount, crowdsaleContract } = await loadFixture(deployPaybackContract)
+            const { token, buyToken, paybackContract, tokenOwner, otherAccount, crowdsaleContract } = await loadFixture(deployPaybackContract)
 
             const tokenSold = ethers.utils.parseEther("3000")
             const leftSupply = ethers.utils.parseEther("47000")
             token.transfer(otherAccount.address, tokenSold)
 
-            const ethReturned = ethers.utils.parseEther("1500")
-            const minusEthReturned = ethers.utils.parseEther("-1500")
-            await expect(tokenOwner.sendTransaction({
-                to: paybackContract.address,
-                value: ethReturned,
-            })).to.emit(paybackContract, "TopUp")
-                .withArgs(tokenOwner.address, ethReturned)
+            const topUpValue = ethers.utils.parseEther("1500")
+            buyToken.transfer(tokenOwner, topUpValue)
+            await buyToken.connect(tokenOwner).approve(paybackContract.address, topUpValue)
+            await expect(paybackContract.connect(tokenOwner).topUp(topUpValue))
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, topUpValue)
 
             await token.connect(otherAccount).approve(paybackContract.address, tokenSold)
 
             await expect(paybackContract.connect(otherAccount).returnTokens(otherAccount.address, tokenSold))
-                .to.changeEtherBalances(
-                    [paybackContract, otherAccount],
-                    [minusEthReturned, ethReturned]
-                )
                 .to.emit(paybackContract, "TokenReturn")
-                .withArgs(otherAccount.address, otherAccount.address, ethReturned, tokenSold)
+                .withArgs(otherAccount.address, otherAccount.address, topUpValue, tokenSold)
                 .to.emit(token, "Transfer")
                 .withArgs(paybackContract.address, ethers.constants.AddressZero, tokenSold)
 
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
+            expect(await buyToken.balanceOf(otherAccount.address)).to.equal(topUpValue)
             expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
             expect(await crowdsaleContract.tokenBurnt()).to.equal(tokenSold)
             expect(await token.totalSupply()).to.equal(leftSupply)
         });
 
         it("Should payback for tokens to beneficiary", async function () {
-            const { token, paybackContract, tokenOwner, otherAccount, beneficiary } = await loadFixture(deployPaybackContract)
+            const { token, buyToken, paybackContract, tokenOwner, otherAccount, beneficiary } = await loadFixture(deployPaybackContract)
 
             const tokenSold = ethers.utils.parseEther("3000")
             token.transfer(otherAccount.address, tokenSold);
 
-            const ethReturned = ethers.utils.parseEther("1500")
-            const minusEthReturned = ethers.utils.parseEther("-1500")
-            await expect(tokenOwner.sendTransaction({
-                to: paybackContract.address,
-                value: ethReturned,
-            })).to.emit(paybackContract, "TopUp")
-                .withArgs(tokenOwner.address, ethReturned)
+            const topUpValue = ethers.utils.parseEther("1500")
+            buyToken.transfer(tokenOwner, topUpValue)
+            await buyToken.connect(tokenOwner).approve(paybackContract.address, topUpValue)
+            await expect(paybackContract.connect(tokenOwner).topUp(topUpValue))
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, topUpValue)
 
             await token.connect(otherAccount).approve(paybackContract.address, tokenSold)
 
             await expect(paybackContract.connect(otherAccount).returnTokens(beneficiary.address, tokenSold))
-                .to.changeEtherBalances(
-                    [paybackContract, beneficiary],
-                    [minusEthReturned, ethReturned]
-                )
                 .to.emit(paybackContract, "TokenReturn")
-                .withArgs(otherAccount.address, beneficiary.address, ethReturned, tokenSold)
+                .withArgs(otherAccount.address, beneficiary.address, topUpValue, tokenSold)
                 .to.emit(token, "Transfer")
                 .withArgs(paybackContract.address, ethers.constants.AddressZero, tokenSold)
 
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
+            expect(await buyToken.balanceOf(beneficiary.address)).to.equal(topUpValue)
             expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
         });
     });
