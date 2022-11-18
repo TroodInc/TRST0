@@ -3,8 +3,9 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TRST0Payback {
+contract TRST0Payback is Ownable {
     using SafeMath for uint256;
 
     ERC20Burnable token;
@@ -14,6 +15,8 @@ contract TRST0Payback {
     uint256 public tokensReturned;
 
     event TopUp(address indexed sender, uint256 value);
+
+    event TopUpRevert(address indexed receiver, uint256 value);
 
     event TokenReturn(
         address indexed sender,
@@ -29,6 +32,11 @@ contract TRST0Payback {
 
     receive() external payable {
         emit TopUp(msg.sender, msg.value);
+    }
+
+    function revertTopUp(uint256 _amount) public onlyOwner {
+        payable(owner()).transfer(_amount);
+        emit TopUpRevert(owner(), _amount);
     }
 
     function getBalance() public view returns (uint256) {

@@ -88,5 +88,44 @@ describe("TRST0PaybackERC20", function () {
             expect(await buyToken.balanceOf(beneficiary.address)).to.equal(topUpValue)
             expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
         });
+
+        it("Should revert topup", async function () {
+            const { token, buyToken, paybackContract, tokenOwner } = await loadFixture(deployPaybackContract)
+
+            const topUpValue = ethers.utils.parseEther("1500")
+            buyToken.transfer(tokenOwner, topUpValue)
+            await buyToken.connect(tokenOwner).approve(paybackContract.address, topUpValue)
+            await expect(paybackContract.connect(tokenOwner).topUp(topUpValue))
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, topUpValue)
+
+            expect(await paybackContract.getBalance()).to.equal(topUpValue)
+            expect(await buyToken.balanceOf(tokenOwner.address)).to.equal(ethers.utils.parseEther("48500"))
+
+            await expect(paybackContract.connect(tokenOwner).revertTopUp(topUpValue))
+                .to.emit(paybackContract, "TopUpRevert")
+                .withArgs(tokenOwner.address, topUpValue)
+
+            expect(await paybackContract.getBalance()).to.equal(0)
+            expect(await buyToken.balanceOf(tokenOwner.address)).to.equal(ethers.utils.parseEther("50000"))
+        });
+
+
+        it("Should not allow to revert topup for not owner", async function () {
+            const { token, buyToken, paybackContract, tokenOwner, otherAccount } = await loadFixture(deployPaybackContract)
+
+            const topUpValue = ethers.utils.parseEther("1500")
+            buyToken.transfer(tokenOwner, topUpValue)
+            await buyToken.connect(tokenOwner).approve(paybackContract.address, topUpValue)
+            await expect(paybackContract.connect(tokenOwner).topUp(topUpValue))
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, topUpValue)
+
+            expect(await paybackContract.getBalance()).to.equal(topUpValue)
+            expect(await buyToken.balanceOf(tokenOwner.address)).to.equal(ethers.utils.parseEther("48500"))
+
+            await expect(paybackContract.connect(otherAccount).revertTopUp(topUpValue))
+                .to.be.rejectedWith("Ownable: caller is not the owner")
+        });
     });
 });

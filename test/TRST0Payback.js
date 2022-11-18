@@ -91,5 +91,55 @@ describe("TRST0Payback", function () {
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
             expect(await paybackContract.tokensReturned()).to.equal(tokenSold)
         });
+
+        it("Should revert topUp", async function () {
+            const { token, paybackContract, tokenOwner } = await loadFixture(deployPaybackContract)
+
+            const ethReturned = ethers.utils.parseEther("1500")
+            const minusEthReturned = ethers.utils.parseEther("-1500")
+            await expect(tokenOwner.sendTransaction({
+                to: paybackContract.address,
+                value: ethReturned,
+            }))
+                .to.changeEtherBalances(
+                    [tokenOwner, paybackContract],
+                    [minusEthReturned, ethReturned]
+                )
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, ethReturned)
+
+            expect(await paybackContract.getBalance()).to.equal(ethReturned)
+
+            await expect(paybackContract.connect(tokenOwner).revertTopUp(ethReturned))
+                .to.changeEtherBalances(
+                    [paybackContract, tokenOwner],
+                    [minusEthReturned, ethReturned]
+                )
+                .to.emit(paybackContract, "TopUpRevert")
+                .withArgs(tokenOwner.address, ethReturned)
+        });
+
+        it("Should not allow to revert topup for not owner", async function () {
+            const { token, paybackContract, tokenOwner, otherAccount } = await loadFixture(deployPaybackContract)
+
+            const ethReturned = ethers.utils.parseEther("1500")
+            const minusEthReturned = ethers.utils.parseEther("-1500")
+            await expect(tokenOwner.sendTransaction({
+                to: paybackContract.address,
+                value: ethReturned,
+            }))
+                .to.changeEtherBalances(
+                    [tokenOwner, paybackContract],
+                    [minusEthReturned, ethReturned]
+                )
+                .to.emit(paybackContract, "TopUp")
+                .withArgs(tokenOwner.address, ethReturned)
+
+            expect(await paybackContract.getBalance()).to.equal(ethReturned)
+
+            await expect(paybackContract.connect(otherAccount).revertTopUp(ethReturned))
+                .to.be.rejectedWith("Ownable: caller is not the owner")
+        });
+
     });
 });

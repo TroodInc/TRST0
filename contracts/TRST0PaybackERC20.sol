@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TRST0PaybackERC20 {
+contract TRST0PaybackERC20 is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -18,6 +19,8 @@ contract TRST0PaybackERC20 {
     uint256 public tokensReturned;
 
     event TopUp(address indexed sender, uint256 value);
+
+    event TopUpRevert(address indexed receiver, uint256 value);
 
     event TokenReturn(
         address indexed sender,
@@ -39,6 +42,11 @@ contract TRST0PaybackERC20 {
     function topUp(uint256 _amount) public {
         buyToken.safeTransferFrom(msg.sender, address(this), _amount);
         emit TopUp(msg.sender, _amount);
+    }
+
+    function revertTopUp(uint256 _amount) public onlyOwner {
+        buyToken.transfer(owner(), _amount);
+        emit TopUpRevert(owner(), _amount);
     }
 
     function getBalance() public view returns (uint256) {
