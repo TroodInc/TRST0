@@ -33,14 +33,7 @@ abstract contract AllowanceCrowdsaleWithDiscount is
         override
         returns (uint256)
     {
-        return weiAmount.mul(_discountedRate(beneficiary)).div(100);
-    }
-
-    function _discountedRate(address beneficiary)
-        private
-        view
-        returns (uint256)
-    {
-        return rate().mul(100 + _discounts[beneficiary]);
+        return
+            weiAmount.mul(rate()).mul(100).div(100 - _discounts[beneficiary]);
     }
 }

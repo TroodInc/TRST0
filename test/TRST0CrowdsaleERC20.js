@@ -104,8 +104,8 @@ describe("TRST0CrowdsaleERC20", function () {
 
             const allowance = ethers.utils.parseEther("3000")
             const amount = ethers.utils.parseEther("2")
-            const expectedTokenAmount = ethers.utils.parseEther("7")
-            const tokenAvailable = ethers.utils.parseEther("49993")
+            const expectedTokenAmount = ethers.utils.parseEther("5")
+            const tokenAvailable = ethers.utils.parseEther("49995")
 
             await expect(token.connect(tokenHolder).approve(crowdsaleContract.address, allowance))
                 .to.emit(token, "Approval")
@@ -115,7 +115,7 @@ describe("TRST0CrowdsaleERC20", function () {
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
 
-            await crowdsaleContract.setDiscount(otherAccount.address, 75)
+            await crowdsaleContract.setDiscount(otherAccount.address, 20)
 
             await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
                 .to.emit(crowdsaleContract, "TokensPurchased")
