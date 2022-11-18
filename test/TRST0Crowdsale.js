@@ -42,6 +42,16 @@ describe("TRST0Crowdsale", function () {
             expect(await crowdsaleContract.tokenReceivedFree()).to.equal(0)
         });
 
+        it("Should not allow incorrect discounts", async function () {
+            const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount } = await loadFixture(deployCrowdsaleContract)
+            await expect(crowdsaleContract.setDiscount(otherAccount.address, 125))
+                .to.be.rejectedWith("Discount should be less than 100")
+            await expect(crowdsaleContract.setDiscount(otherAccount.address, 100))
+                .to.be.rejectedWith("Discount should be less than 100")
+            await expect(crowdsaleContract.setDiscount(otherAccount.address, 0))
+                .to.be.rejectedWith("Discount should be greater than 0")
+        });
+
         it("Should return allowance", async function () {
             const { supply, token, crowdsaleContract, rate, tokenOwner, tokenHolder } = await loadFixture(deployCrowdsaleContract)
 
