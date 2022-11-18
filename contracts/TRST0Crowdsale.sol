@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.7;
 
-import "./AllowanceCrowdsale.sol";
+import "./AllowanceCrowdsaleWithDiscount.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TRST0Crowdsale is AllowanceCrowdsale {
+contract TRST0Crowdsale is AllowanceCrowdsaleWithDiscount {
     uint256 private _initialSupply;
     uint256 private _tokenSold;
 

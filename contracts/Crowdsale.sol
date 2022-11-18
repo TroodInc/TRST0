@@ -134,7 +134,7 @@ abstract contract Crowdsale is Context, ReentrancyGuard {
         _preValidatePurchase(beneficiary, weiAmount);
 
         // calculate token amount to be created
-        uint256 tokens = _getTokenAmount(weiAmount);
+        uint256 tokens = _getTokenAmount(beneficiary, weiAmount);
 
         // update state
         _weiRaised = _weiRaised.add(weiAmount);
@@ -228,7 +228,7 @@ abstract contract Crowdsale is Context, ReentrancyGuard {
      * @param weiAmount Value in wei to be converted into tokens
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
-    function _getTokenAmount(uint256 weiAmount)
+    function _getTokenAmount(address, uint256 weiAmount)
         internal
         view
         virtual

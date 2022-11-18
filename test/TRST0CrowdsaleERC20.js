@@ -82,6 +82,41 @@ describe("TRST0CrowdsaleERC20", function () {
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
 
+            await crowdsaleContract.setDiscount(otherAccount.address, 10)
+            await crowdsaleContract.removeDiscount(otherAccount.address)
+
+            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+                .to.emit(crowdsaleContract, "TokensPurchased")
+                .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
+
+            expect(await token.balanceOf(otherAccount.address)).to.equal(expectedTokenAmount)
+            expect(await buyToken.balanceOf(tokenOwner.address)).to.equal(amount)
+            expect(await crowdsaleContract.tokenAvailable()).to.equal(tokenAvailable)
+            expect(await crowdsaleContract.tokenSold()).to.equal(expectedTokenAmount)
+            expect(await crowdsaleContract.tokenReceivedFree()).to.equal(0)
+        });
+
+        it("Should buy tokens from allowance with discount", async function () {
+            const { supply, token, buyToken, crowdsaleContract, rate, tokenOwner, tokenHolder, otherAccount, freeAccount } = await loadFixture(deployCrowdsaleContract)
+
+            token.transfer(tokenHolder.address, supply);
+            buyToken.transfer(otherAccount.address, supply);
+
+            const allowance = ethers.utils.parseEther("3000")
+            const amount = ethers.utils.parseEther("2")
+            const expectedTokenAmount = ethers.utils.parseEther("7")
+            const tokenAvailable = ethers.utils.parseEther("49993")
+
+            await expect(token.connect(tokenHolder).approve(crowdsaleContract.address, allowance))
+                .to.emit(token, "Approval")
+                .withArgs(tokenHolder.address, crowdsaleContract.address, allowance)
+
+            await buyToken.connect(otherAccount).approve(crowdsaleContract.address, allowance)
+
+            expect(await token.balanceOf(otherAccount.address)).to.equal(0)
+
+            await crowdsaleContract.setDiscount(otherAccount.address, 75)
+
             await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
                 .to.emit(crowdsaleContract, "TokensPurchased")
                 .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
