@@ -13,6 +13,8 @@
     "hardhat": "^2.11.1"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.7.3"
+    "@openzeppelin/contracts": "^4.7.3",
+    "dotenv": "^16.0.3",
+    "find-config": "^1.0.0"
   }
 }
