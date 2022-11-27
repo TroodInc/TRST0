@@ -16,9 +16,10 @@ async function main() {
   trst = deployContract("TRST0", "Cool TRST", "TRSTC", deployer.address, 1000)
 
   rate = 1000000
-  deployContract("TRST0Crowdsale", rate, deployer.address, tokenHolder.address, trst)
+  buyToken = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; //USDC
+  deployContract("TRST0CrowdsaleERC20", rate, deployer.address, tokenHolder.address, trst, buyToken)
 
-  deployContract("TRST0Payback", trst, rate)
+  deployContract("TRST0PaybackERC20", trst, buyToken, rate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
