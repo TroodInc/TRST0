@@ -85,7 +85,7 @@ describe("TRST0CrowdsaleERC20", function () {
             await crowdsaleContract.setDiscount(otherAccount.address, 10)
             await crowdsaleContract.removeDiscount(otherAccount.address)
 
-            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+            await expect(crowdsaleContract.connect(otherAccount).buyTokens(otherAccount.address, amount))
                 .to.emit(crowdsaleContract, "TokensPurchased")
                 .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
 
@@ -117,7 +117,7 @@ describe("TRST0CrowdsaleERC20", function () {
 
             await crowdsaleContract.setDiscount(otherAccount.address, 20)
 
-            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+            await expect(crowdsaleContract.connect(otherAccount).buyTokens(otherAccount.address, amount))
                 .to.emit(crowdsaleContract, "TokensPurchased")
                 .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
 
@@ -151,7 +151,7 @@ describe("TRST0CrowdsaleERC20", function () {
 
             expect(await token.balanceOf(otherAccount.address)).to.equal(0)
 
-            await expect(crowdsaleContract.connect(otherAccount).buyTokensWithAmount(otherAccount.address, amount))
+            await expect(crowdsaleContract.connect(otherAccount).buyTokens(otherAccount.address, amount))
                 .to.emit(crowdsaleContract, "TokensPurchased")
                 .withArgs(otherAccount.address, otherAccount.address, amount, expectedTokenAmount)
 
