@@ -6,20 +6,22 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
+const { USDC } = process.env;
 
 async function main() {
 
-  const [deployer, tokenHolder] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
   console.log('Deploying contracts with the account: ' + deployer.address);
-  console.log('Token holder: ' + tokenHolder.address);
+  console.log('Token holder: ' + deployer.address);
 
-  trst = deployContract("TRST0", "Cool TRST", "TRSTC", deployer.address, 1000)
+  supply = ethers.utils.parseEther("380000");
+  token = deployContract("TRST0", "Cool BBHZ", "BBHZ", deployer.address, supply)
 
-  rate = 1000000
-  buyToken = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; //USDC
-  deployContract("TRST0CrowdsaleERC20", rate, deployer.address, tokenHolder.address, trst, buyToken)
+  rate = 1000000000000
+  buyToken = USDC;
+  deployContract("TRST0CrowdsaleERC20", rate, deployer.address, deployer.address, token, buyToken)
 
-  deployContract("TRST0PaybackERC20", trst, buyToken, rate)
+  deployContract("TRST0PaybackERC20", token, buyToken, rate)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -31,13 +33,10 @@ main().catch((error) => {
 
 async function deployContract(contractName, ...args) {
   const factory = await hre.ethers.getContractFactory(contractName);
+
   const contract = await factory.deploy(...args);
-
   await contract.deployed();
-
-  console.log(
-    `${contractName} address: ${contract.address}`
-  );
+  console.log(`${contractName} address: ${contract.address}`);
 
   return contract.address
 }
