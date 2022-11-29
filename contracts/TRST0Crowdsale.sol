@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.7;
 
-import "./AllowanceCrowdsaleWithDiscount.sol";
+import "./AllowanceCrowdsaleWithDiscountETH.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TRST0Crowdsale is AllowanceCrowdsaleWithDiscount {
+contract TRST0Crowdsale is AllowanceCrowdsaleWithDiscountETH {
     uint256 private _initialSupply;
     uint256 private _tokenSold;
 
@@ -17,11 +17,10 @@ contract TRST0Crowdsale is AllowanceCrowdsaleWithDiscount {
         _initialSupply = token().totalSupply();
     }
 
-    function _deliverTokens(address beneficiary, uint256 tokenAmount)
-        internal
-        virtual
-        override
-    {
+    function _deliverTokens(
+        address beneficiary,
+        uint256 tokenAmount
+    ) internal virtual override {
         super._deliverTokens(beneficiary, tokenAmount);
         _tokenSold += tokenAmount;
     }

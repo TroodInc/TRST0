@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.7;
 
-import "./AllowanceCrowdsaleERC20.sol";
+import "./AllowanceCrowdsaleWithDiscountERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TRST0CrowdsaleERC20 is AllowanceCrowdsaleERC20 {
+contract TRST0CrowdsaleERC20 is AllowanceCrowdsaleWithDiscountERC20 {
     uint256 private _initialSupply;
     uint256 private _tokenSold;
 
@@ -17,7 +17,7 @@ contract TRST0CrowdsaleERC20 is AllowanceCrowdsaleERC20 {
     )
         Crowdsale(rate, wallet, token_)
         AllowanceCrowdsale(tokenWallet)
-        AllowanceCrowdsaleERC20(tokenBuy_)
+        AllowanceCrowdsaleWithDiscountERC20(tokenBuy_)
     {
         _initialSupply = token().totalSupply();
     }
